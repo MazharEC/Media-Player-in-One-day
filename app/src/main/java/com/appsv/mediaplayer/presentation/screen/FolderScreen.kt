@@ -1,4 +1,8 @@
 package com.appsv.mediaplayer.presentation.screen
 
-class FolderScreen {
+import androidx.compose.runtime.Composable
+import androidx.navigation.NavHostController
+
+@Composable
+fun FolderScreen(navController: NavHostController) {
 }

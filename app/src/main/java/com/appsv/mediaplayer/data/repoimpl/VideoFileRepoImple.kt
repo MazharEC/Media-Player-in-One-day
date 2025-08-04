@@ -66,13 +66,14 @@ class VideoFileRepoImple : VideoFileRepo {
     }
 
     override suspend fun getAllFolders(application: Application): Flow<Map<String, ArrayList<VideoFile>>> {
-
         val allVideos = getAllVideos(application).first()
-        val videosByFolders = allVideos.groupBy{ File(it.path).parent?:"Unknown Folder"}
+        val videosByFolders = allVideos
+            .groupBy { File(it.path).parent ?: "Unknown Folder" }
+            .mapValues { ArrayList(it.value) } // ✅ Fix: Convert List to ArrayList
 
-        return flow{
+        return flow {
             emit(videosByFolders)
-
         }
     }
+
 }
