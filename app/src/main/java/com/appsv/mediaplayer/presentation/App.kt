@@ -1,63 +1,50 @@
 package com.appsv.mediaplayer.presentation
 
 import android.Manifest
-import androidx.compose.material3.Text
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
+import android.os.Build
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
+import androidx.compose.material3.Button
+import androidx.compose.material3.Text
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import com.appsv.mediaplayer.presentation.screen.HomeScreen
 import com.appsv.mediaplayer.presentation.viewmodel.ViewModel
-import com.google.accompanist.permissions.ExperimentalPermissionsApi
-import com.google.accompanist.permissions.isGranted
-import com.google.accompanist.permissions.rememberPermissionState
+import com.google.accompanist.permissions.*
 
 @OptIn(ExperimentalPermissionsApi::class)
 @Composable
 fun App(
     navController: NavHostController,
-    modifier : Modifier = Modifier,
-    viewModel: ViewModel = hiltViewModel(),
+    modifier: Modifier = Modifier,
+    viewModel: ViewModel = hiltViewModel()
 ) {
+    val storagePermission = rememberPermissionState(
+        permission = Manifest.permission.READ_EXTERNAL_STORAGE
+    )
 
-    val mediaPermission = rememberPermissionState(permission = Manifest.permission.READ_MEDIA_VIDEO)
-    val mediaPermissionLauncher = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) {
-
-        if(it){
-            viewModel.showUi.value = true
-        }else{
-            viewModel.showUi.value = false
-
+    // Request on first launch
+    LaunchedEffect(Unit) {
+        if (!storagePermission.status.isGranted) {
+            storagePermission.launchPermissionRequest()
         }
     }
 
-    LaunchedEffect(key1 = mediaPermission){
-
-        if(!mediaPermission.status.isGranted){
-
-            mediaPermissionLauncher.launch(Manifest.permission.READ_MEDIA_VIDEO)
-        }else{
-            viewModel.showUi.value = true
-        }
-    }
-
-    val state = viewModel.showUi.collectAsState()
-    if(state.value){
+    if (storagePermission.status.isGranted) {
         HomeScreen(navController = navController)
-    }else{
-
+    } else {
         Box(
             modifier = Modifier.fillMaxSize(),
             contentAlignment = Alignment.Center
-        ){
-            Text(text = "Please Grant Permission")
+        ) {
+            Button(onClick = {
+                storagePermission.launchPermissionRequest()
+            }) {
+                Text("Grant Storage Permission")
+            }
         }
     }
 }
